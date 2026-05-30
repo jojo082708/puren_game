@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>界域地圖 · Boss 據點</title>
+<link rel="stylesheet" href="css/main.css">
+<style>
+/* 地圖主題：泥土/石頭深色 */
+body {
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(0,0,0,.1) 7px, rgba(0,0,0,.1) 8px),
+    repeating-linear-gradient(90deg, transparent, transparent 7px, rgba(0,0,0,.1) 7px, rgba(0,0,0,.1) 8px);
+}
+
+/* Minecraft 像素地圖物品框 */
+.mc-map-frame {
+  background: #8b6914;
+  border: 4px solid #6b4f10; border-bottom-color: #3a2a08; border-right-color: #3a2a08;
+  padding: 8px; margin-bottom: 20px;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,.1), inset -2px -2px 0 rgba(0,0,0,.3);
+}
+.mc-map-inner {
+  background: #c8a850;
+  border: 2px solid #6b4f10;
+  padding: 16px 10px;
+  position: relative;
+  overflow: hidden;
+}
+.mc-map-inner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(100,60,0,.08) 7px, rgba(100,60,0,.08) 8px),
+    repeating-linear-gradient(90deg, transparent, transparent 7px, rgba(100,60,0,.08) 7px, rgba(100,60,0,.08) 8px);
+}
+.map-title-banner {
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  color: #3a2800; text-align: center; margin-bottom: 16px; position: relative; z-index: 1;
+  text-shadow: 1px 1px 0 rgba(255,200,80,.4);
+}
+
+/* 捷運路線 SVG */
+#metro-svg { width: 100%; height: auto; position: relative; z-index: 1; }
+
+/* 站點卡片 */
+.boss-zone-card {
+  margin-bottom: 14px; overflow: hidden;
+  background: var(--bg2);
+  border: 2px solid; transition: all .1s;
+}
+.boss-zone-card:hover { transform: translateX(2px); }
+
+.bzc-banner { height: 6px; }
+.bzc-inner { padding: 14px; }
+
+.bzc-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.bzc-face {
+  width: 52px; height: 52px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 30px;
+  background: rgba(0,0,0,.4); border: 2px solid rgba(255,255,255,.06);
+  border-bottom-color: rgba(255,255,255,.1); border-right-color: rgba(255,255,255,.1);
+  image-rendering: pixelated;
+}
+.bzc-info { flex: 1; }
+.bzc-station-tag {
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: var(--muted); margin-bottom: 4px;
+}
+.bzc-boss-name {
+  font-family: 'Press Start 2P', monospace; font-size: 11px;
+  line-height: 1.6; margin-bottom: 2px;
+}
+.bzc-station-name { font-size: 14px; color: var(--muted); }
+.bzc-status {
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  padding: 4px 8px; border: 2px solid; flex-shrink: 0;
+  line-height: 1;
+}
+
+.bzc-desc { font-size: 14px; color: #b0a080; line-height: 1.7; margin-bottom: 10px; border-top: 1px solid rgba(255,255,255,.05); padding-top: 10px; }
+
+/* Guardian row */
+.guardian-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.04);
+  border-bottom-color: rgba(255,255,255,.08); border-right-color: rgba(255,255,255,.08);
+  padding: 8px 10px; margin-bottom: 8px;
+}
+.g-face { font-size: 22px; flex-shrink: 0; }
+.g-name { font-family: 'Press Start 2P', monospace; font-size: 9px; margin-bottom: 2px; line-height: 1.5; }
+.g-ability { font-size: 12px; color: var(--muted); }
+
+/* Feat pills */
+.feat-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.feat {
+  font-size: 11px; padding: 3px 7px;
+  background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07); color: var(--muted);
+}
+
+/* 分數顯示 */
+.max-score { display: flex; align-items: baseline; gap: 6px; }
+.max-score-num { font-family: 'Press Start 2P', monospace; font-size: 18px; color: var(--piglin); }
+.max-score-lbl { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--muted); }
+
+/* 收隊警告 */
+.danger-banner {
+  background: rgba(200,34,34,.08); border: 2px solid rgba(200,34,34,.3);
+  border-bottom-color: rgba(100,17,17,.5); border-right-color: rgba(100,17,17,.5);
+  padding: 12px 14px; margin-bottom: 20px;
+}
+.db-title { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--tnt-red); margin-bottom: 6px; }
+.db-desc { font-size: 13px; color: #c09090; line-height: 1.7; }
+
+/* Train animation on map */
+@keyframes train { 0%{transform:translateX(-20px)} 100%{transform:translateX(280px)} }
+.train-dot { animation: train 5s linear infinite; }
+</style>
+</head>
+<body>
+
+<div id="mc-intro">
+  <div class="creeper-explode" style="background:radial-gradient(circle,rgba(50,50,50,.6) 0%,transparent 70%)"></div>
+  <div style="font-size:64px;animation:creeper-enter .6s cubic-bezier(.22,1,.36,1) forwards;opacity:0">🗺️</div>
+  <div id="intro-tagline" style="margin-top:16px">EXPLORING MAP...<br>界域地圖載入中...</div>
+</div>
+<div id="tnt-flash" style="background:rgba(100,80,30,.4)"></div>
+
+<nav id="hotbar">
+  <div class="hotbar-inner">
+    <a href="index.html" class="hb-slot"><span class="hb-icon">⚔️</span><span class="hb-label">QUEST</span></a>
+    <a href="rules.html" class="hb-slot"><span class="hb-icon">📖</span><span class="hb-label">RULES</span></a>
+    <a href="leaderboard.html" class="hb-slot"><span class="hb-icon">🏆</span><span class="hb-label">RANK</span></a>
+    <a href="map.html" class="hb-slot active"><span class="hb-icon">🗺️</span><span class="hb-label">MAP</span></a>
+    <a href="certificate.html" class="hb-slot"><span class="hb-icon">🎖️</span><span class="hb-label">CERT</span></a>
+  </div>
+</nav>
+
+<div id="pts"></div>
+<div id="toast"></div>
+
+<div class="wrap">
+  <div class="page-hero">
+    <div class="page-eyebrow" style="color:#c8a850;border-color:rgba(200,168,80,.3)">🗺️ WORLD MAP</div>
+    <div class="page-title" style="color:#c8a850">界域地圖</div>
+    <div class="page-sub">Boss 據點 · 淡水信義線</div>
+  </div>
+
+  <!-- Minecraft 像素地圖 -->
+  <div class="mc-map-frame">
+    <div class="mc-map-inner">
+      <div class="map-title-banner">⛏ R28 → R27 → R26 → R25 ⛏</div>
+      <svg id="metro-svg" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="px-glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+
+        <!-- 路線（像素化外觀） -->
+        <polyline points="25,60 105,55 195,50 295,44" fill="none" stroke="rgba(60,30,10,.4)" stroke-width="7" stroke-linecap="square"/>
+        <polyline points="25,60 105,55 195,50 295,44" fill="none" stroke="#8b0000" stroke-width="3" stroke-linecap="square"/>
+        <polyline points="25,60 105,55 195,50 295,44" fill="none" stroke="rgba(200,50,50,.3)" stroke-width="7" stroke-linecap="square"/>
+
+        <!-- 移動列車 -->
+        <rect class="train-dot" x="-6" y="56" width="8" height="5" fill="rgba(255,200,200,.7)" filter="url(#px-glow)"/>
+
+        <!-- R28 苦力怕 -->
+        <rect x="17" y="52" width="16" height="16" fill="#2a5a2a" stroke="#4a9a4a" stroke-width="2" filter="url(#px-glow)" style="cursor:pointer" onclick="scrollTo('R28')"/>
+        <rect x="21" y="56" width="4" height="4" fill="#4a9a4a"/>
+        <rect x="25" y="56" width="4" height="4" fill="#111"/>
+        <text x="25" y="82" text-anchor="middle" fill="#2a5a2a" font-size="7" font-family="'Press Start 2P',monospace">R28</text>
+        <text x="25" y="92" text-anchor="middle" fill="#3a7a3a" font-size="8" font-family="'Press Start 2P',monospace">淡水</text>
+        <text x="25" y="100" text-anchor="middle" fill="rgba(74,154,74,.7)" font-size="6" font-family="'Press Start 2P',monospace">💚A</text>
+
+        <!-- R27 衛道士 -->
+        <rect x="97" y="47" width="16" height="16" fill="#3a1a6a" stroke="#7a5aaa" stroke-width="2" style="cursor:pointer" onclick="scrollTo('R27')"/>
+        <rect x="101" y="51" width="8" height="3" fill="#7a5aaa"/>
+        <rect x="103" y="54" width="4" height="5" fill="#5a3a8a"/>
+        <text x="105" y="76" text-anchor="middle" fill="#4a2a7a" font-size="7" font-family="'Press Start 2P',monospace">R27</text>
+        <text x="105" y="86" text-anchor="middle" fill="#5a3a8a" font-size="8" font-family="'Press Start 2P',monospace">紅樹林</text>
+        <text x="105" y="95" text-anchor="middle" fill="rgba(122,90,170,.7)" font-size="6" font-family="'Press Start 2P',monospace">🪓B</text>
+
+        <!-- R26 凋零怪 -->
+        <rect x="187" y="42" width="16" height="16" fill="#1a1a1a" stroke="#666" stroke-width="2" style="cursor:pointer" onclick="scrollTo('R26')"/>
+        <rect x="191" y="46" width="8" height="8" fill="#333"/>
+        <rect x="193" y="47" width="2" height="2" fill="#888"/>
+        <rect x="197" y="47" width="2" height="2" fill="#888"/>
+        <text x="195" y="72" text-anchor="middle" fill="#444" font-size="7" font-family="'Press Start 2P',monospace">R26</text>
+        <text x="195" y="82" text-anchor="middle" fill="#555" font-size="8" font-family="'Press Start 2P',monospace">竹圍</text>
+        <text x="195" y="91" text-anchor="middle" fill="rgba(100,100,100,.7)" font-size="6" font-family="'Press Start 2P',monospace">💀C</text>
+
+        <!-- R25 凋零 FINAL -->
+        <rect x="283" y="32" width="20" height="20" fill="#0a0a2a" stroke="#8888cc" stroke-width="2.5" filter="url(#px-glow)" style="cursor:pointer" onclick="scrollTo('R25')"/>
+        <rect x="287" y="36" width="12" height="5" fill="#333"/>
+        <rect x="289" y="41" width="8" height="7" fill="#2a2a4a"/>
+        <rect x="291" y="42" width="2" height="2" fill="#8888cc"/>
+        <rect x="295" y="42" width="2" height="2" fill="#8888cc"/>
+        <text x="7" y="10" text-anchor="start" fill="rgba(136,136,204,.6)" font-size="6" font-family="'Press Start 2P',monospace" transform="translate(280,0)">FINAL</text>
+        <text x="293" y="66" text-anchor="middle" fill="#3a3a7a" font-size="7" font-family="'Press Start 2P',monospace">R25</text>
+        <text x="293" y="76" text-anchor="middle" fill="#4a4a8a" font-size="8" font-family="'Press Start 2P',monospace">關渡</text>
+        <text x="293" y="85" text-anchor="middle" fill="rgba(136,136,204,.7)" font-size="6" font-family="'Press Start 2P',monospace">💨D</text>
+
+        <!-- 距離 -->
+        <text x="65" y="44" text-anchor="middle" fill="rgba(100,60,20,.6)" font-size="6" font-family="'Press Start 2P',monospace">~3m</text>
+        <text x="150" y="39" text-anchor="middle" fill="rgba(100,60,20,.6)" font-size="6" font-family="'Press Start 2P',monospace">~3m</text>
+        <text x="244" y="34" text-anchor="middle" fill="rgba(100,60,20,.6)" font-size="6" font-family="'Press Start 2P',monospace">~4m</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="sec-hdr">BOSS ZONES · 四大 Boss 據點</div>
+
+  <!-- R28 苦力怕 -->
+  <div class="boss-zone-card" id="card-R28" style="border-color:#2a5a2a;border-bottom-color:#0a1a0a;border-right-color:#0a1a0a">
+    <div class="bzc-banner" style="background:var(--creeper)"></div>
+    <div class="bzc-inner">
+      <div class="bzc-top">
+        <div class="bzc-face" style="border-color:rgba(74,154,74,.2)">💚</div>
+        <div class="bzc-info">
+          <div class="bzc-station-tag">R28 · DANSHUI · STAGE A</div>
+          <div class="bzc-boss-name" style="color:var(--creeper)">CREEPER · 苦力怕</div>
+          <div class="bzc-station-name">淡水站 · 開場 Boss</div>
+        </div>
+        <div class="bzc-status" style="color:var(--creeper);border-color:var(--creeper)" id="status-R28">ACTIVE</div>
+      </div>
+      <div class="guardian-row">
+        <div class="g-face">💣</div>
+        <div>
+          <div class="g-name" style="color:var(--creeper)">地脈使「殘影」</div>
+          <div class="g-ability">能力：TNT 爆炸核心 · 8 個封印點</div>
+        </div>
+      </div>
+      <div class="bzc-desc">TNT 倒數中！尋找淡水站周邊 8 個場景目標，用鏡頭封印苦力怕爆炸核心。站前廣場、藝術裝置、歷史建築都是 Boss 的藏匿點。</div>
+      <div class="feat-row">
+        <span class="feat">📸 拍照封印</span>
+        <span class="feat">⏱ 20 分鐘</span>
+        <span class="feat">💥 TNT 機制</span>
+        <span class="feat">👥 全隊合力</span>
+      </div>
+      <div class="max-score">
+        <span class="max-score-num">23</span>
+        <span class="max-score-lbl">MAX HP DAMAGE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- R27 衛道士 -->
+  <div class="boss-zone-card" id="card-R27" style="border-color:#3a1a6a;border-bottom-color:#1a0a3a;border-right-color:#1a0a3a">
+    <div class="bzc-banner" style="background:var(--vindicator)"></div>
+    <div class="bzc-inner">
+      <div class="bzc-top">
+        <div class="bzc-face" style="border-color:rgba(122,90,170,.2)">🪓</div>
+        <div class="bzc-info">
+          <div class="bzc-station-tag">R27 · HONGSHULIN · STAGE B</div>
+          <div class="bzc-boss-name" style="color:var(--vindicator)">VINDICATOR · 衛道士</div>
+          <div class="bzc-station-name">紅樹林站 · 中期 Boss</div>
+        </div>
+        <div class="bzc-status" style="color:var(--vindicator);border-color:var(--vindicator)" id="status-R27">ACTIVE</div>
+      </div>
+      <div class="guardian-row">
+        <div class="g-face">🌊</div>
+        <div>
+          <div class="g-name" style="color:var(--vindicator)">音波使「虛響」</div>
+          <div class="g-ability">能力：斧頭結界 · 音波偵測防護</div>
+        </div>
+      </div>
+      <div class="bzc-desc">衛道士持斧巡邏紅樹林！在音波偵測範圍外完成協調任務，悄悄封印鐵斧。幾米藝術裝置附近有 Boss 的能量節點，保持安靜！</div>
+      <div class="feat-row">
+        <span class="feat">🎵 音波挑戰</span>
+        <span class="feat">🌿 生態環境</span>
+        <span class="feat">🎨 藝術裝置</span>
+        <span class="feat">🤫 保持安靜</span>
+      </div>
+      <div class="max-score">
+        <span class="max-score-num">20</span>
+        <span class="max-score-lbl">MAX HP DAMAGE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- R26 凋零怪 -->
+  <div class="boss-zone-card" id="card-R26" style="border-color:#2a2a2a;border-bottom-color:#111;border-right-color:#111">
+    <div class="bzc-banner" style="background:#555"></div>
+    <div class="bzc-inner">
+      <div class="bzc-top">
+        <div class="bzc-face" style="border-color:rgba(100,100,100,.2)">💀</div>
+        <div class="bzc-info">
+          <div class="bzc-station-tag">R26 · ZHUWEI · STAGE C</div>
+          <div class="bzc-boss-name" style="color:#aaa">WITHER SKELETON · 凋零怪</div>
+          <div class="bzc-station-name">竹圍站 · 中後期 Boss</div>
+        </div>
+        <div class="bzc-status" style="color:#888;border-color:#555" id="status-R26">ACTIVE</div>
+      </div>
+      <div class="guardian-row">
+        <div class="g-face">⛓️</div>
+        <div>
+          <div class="g-name" style="color:#aaa">束縛使「鐵絲」</div>
+          <div class="g-ability">能力：凋零詛咒 · 骨架繩索障礙陣</div>
+        </div>
+      </div>
+      <div class="bzc-desc">⬛ 凋零效果觸發！移動速度降低，視野受限。突破骨架繩索障礙陣，全隊協作通過每一格障礙，解除凋零怪的詛咒封印。</div>
+      <div class="feat-row">
+        <span class="feat">🦴 繩索障礙</span>
+        <span class="feat">🏋️ 肢體協調</span>
+        <span class="feat">⏱ 計時挑戰</span>
+        <span class="feat">🤝 全員參與</span>
+      </div>
+      <div class="max-score">
+        <span class="max-score-num">20</span>
+        <span class="max-score-lbl">MAX HP DAMAGE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- R25 凋零 FINAL -->
+  <div class="boss-zone-card" id="card-R25" style="border-color:#22224a;border-bottom-color:#0a0a2a;border-right-color:#0a0a2a">
+    <div class="bzc-banner" style="background:linear-gradient(90deg,#333,var(--wither),#333)"></div>
+    <div class="bzc-inner">
+      <div class="bzc-top">
+        <div class="bzc-face" style="border-color:rgba(136,136,204,.2)">💨</div>
+        <div class="bzc-info">
+          <div class="bzc-station-tag">R25 · GUANDU · FINAL BOSS</div>
+          <div class="bzc-boss-name" style="color:var(--wither)">THE WITHER · 凋零</div>
+          <div class="bzc-station-name">關渡站 · 終極決戰</div>
+        </div>
+        <div class="bzc-status" style="color:var(--wither);border-color:var(--wither);animation:btn-pulse 2s infinite" id="status-R25">FINAL</div>
+      </div>
+      <div class="guardian-row" style="border-color:rgba(136,136,204,.1)">
+        <div class="g-face">💀💀💀</div>
+        <div>
+          <div class="g-name" style="color:var(--wither)">核心使「虛空」</div>
+          <div class="g-ability">三顆骷髏頭 = 三個關卡密碼數字</div>
+        </div>
+      </div>
+      <div class="bzc-desc">終極 Boss！集結 R28、R27、R26 三個印記中的數字，破解 3×3 九宮格密碼矩陣，輸入封印咒語消滅凋零！HP 300，必須一擊必殺。</div>
+      <div class="feat-row">
+        <span class="feat">🔐 密碼解謎</span>
+        <span class="feat">🧮 九宮格</span>
+        <span class="feat">⏱ 限時 10 分</span>
+        <span class="feat">💀 三骷髏頭</span>
+      </div>
+      <div class="max-score">
+        <span class="max-score-num">25</span>
+        <span class="max-score-lbl">MAX HP DAMAGE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 收隊警告 -->
+  <div class="danger-banner">
+    <div class="db-title">⚠ 16:30 · 全員收關！</div>
+    <div class="db-desc">不論在哪一站，立刻前往 <strong style="color:#fff">R28 淡水站 1 號出口廣場</strong> 集合。如在 R27/R26/R25，立刻搭捷運北上。</div>
+  </div>
+
+</div>
+
+<script src="js/common.js"></script>
+<script>
+function scrollTo(id) {
+  const el = document.getElementById('card-' + id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.style.transition = 'box-shadow .3s';
+  el.style.boxShadow = '0 0 0 2px rgba(255,255,255,.2)';
+  setTimeout(() => el.style.boxShadow = '', 1500);
+  showToast('📍 ' + id + ' 站點定位中...', '', 1500);
+}
+
+// 從 localStorage 讀印記狀態
+function syncStatus() {
+  try {
+    const s = JSON.parse(localStorage.getItem('mc_state_v1') || '{}');
+    const seals = s.seals || {};
+    const map = { a:'R28', b:'R27', c:'R26', d:'R25' };
+    Object.entries(map).forEach(([seal, station]) => {
+      const el = document.getElementById('status-' + station);
+      if (el && seals[seal]) {
+        el.textContent = 'SEALED ✦';
+        el.style.color = 'var(--piglin)';
+        el.style.borderColor = 'var(--piglin)';
+        el.style.animation = 'none';
+      }
+    });
+  } catch {}
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initBlockParticles(16, '#555');
+  initCreeperIntro();
+  syncStatus();
+  const hash = location.hash.replace('#', '');
+  if (hash) setTimeout(() => scrollTo(hash), 900);
+});
+</script>
+</body>
+</html>
