@@ -1,0 +1,13 @@
+{
+  "name": "普術迴綻 · Minecraft 夏令營",
+  "short_name": "普術迴綻",
+  "description": "115 夏令營 地下鐵 Boss 大戰",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f0a05",
+  "theme_color": "#4a9a4a",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
