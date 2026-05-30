@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>衛道士手冊 · 行動守則</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/main.css">
+<style>
+/* 衛道士紫色主題 */
+body {
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(90,40,130,.04) 15px, rgba(90,40,130,.04) 16px),
+    repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(90,40,130,.04) 15px, rgba(90,40,130,.04) 16px);
+}
+
+/* 書本開場動畫 */
+@keyframes book-open {
+  0%   { transform: scaleX(0) rotateY(-90deg); opacity: 0; }
+  60%  { transform: scaleX(1.04) rotateY(3deg); opacity: 1; }
+  100% { transform: scaleX(1) rotateY(0deg); opacity: 1; }
+}
+.book-anim { animation: book-open .6s .3s cubic-bezier(.22,1,.36,1) both; }
+
+/* 羊皮紙卷軸卡片 */
+.scroll-card {
+  background: linear-gradient(160deg, #2a1e10, #1e1408);
+  border: 2px solid #4a3a20; border-bottom-color: #7a6a40; border-right-color: #7a6a40;
+  padding: 14px 16px; margin-bottom: 12px;
+  position: relative;
+}
+.scroll-card::before {
+  content: '📜';
+  position: absolute; top: -10px; left: 12px; font-size: 16px;
+}
+
+/* 規則條目 */
+.rule-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 0; border-bottom: 1px solid rgba(90,58,138,.15);
+  font-size: 14px; line-height: 1.7; color: #c8b888;
+}
+.rule-row:last-child { border-bottom: none; padding-bottom: 0; }
+.rule-row:first-child { padding-top: 0; }
+.rule-ax { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.rule-row strong { color: var(--text); font-family: 'Press Start 2P', monospace; font-size: 9px; display: block; margin-bottom: 4px; }
+
+/* 通訊水晶聯絡卡 */
+.crystal-card {
+  background: linear-gradient(135deg, rgba(90,58,138,.15), rgba(30,10,60,.2));
+  border: 2px solid rgba(122,90,170,.4); border-bottom-color: rgba(50,20,80,.8); border-right-color: rgba(50,20,80,.8);
+  padding: 14px; margin-bottom: 12px;
+}
+.crystal-title {
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  color: var(--vindicator); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.contact-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid rgba(90,58,138,.15);
+  font-size: 14px;
+}
+.contact-row:last-child { border-bottom: none; }
+.cr-role { color: var(--muted); }
+.cr-tel {
+  font-family: 'Press Start 2P', monospace; font-size: 11px;
+  color: var(--vindicator); text-decoration: none;
+  transition: color .15s;
+}
+.cr-tel:hover { color: #fff; }
+
+/* 時程方塊 */
+.schedule-block {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--bg2); border: 2px solid var(--border);
+  border-bottom-color: #555; border-right-color: #555;
+  padding: 10px 12px; margin-bottom: 6px;
+}
+.sb-time {
+  font-family: 'Press Start 2P', monospace; font-size: 9px;
+  color: var(--vindicator); min-width: 88px; line-height: 1.7; flex-shrink: 0;
+}
+.sb-content {}
+.sb-name { font-family: 'Press Start 2P', monospace; font-size: 9px; margin-bottom: 3px; line-height: 1.6; }
+.sb-place { font-size: 13px; color: var(--muted); }
+
+/* 積分表格 */
+.score-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.score-table th {
+  font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--muted);
+  text-align: left; padding: 6px 8px; border-bottom: 2px solid var(--border); font-weight: 400;
+}
+.score-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.04); color: #b0a080; vertical-align: top; }
+.score-table td:last-child { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--piglin); text-align: right; white-space: nowrap; }
+.score-table td.neg { color: var(--tnt-red); }
+.score-table tr:last-child td { border-bottom: none; }
+
+/* 確認按鈕 */
+.confirm-sticky {
+  position: sticky; bottom: env(safe-area-inset-bottom,0);
+  padding: 14px 0 6px;
+  background: linear-gradient(transparent, var(--bg) 40%);
+  margin-top: 20px;
+}
+.confirm-btn {
+  width: 100%; padding: 14px; cursor: pointer; border: none;
+  font-family: 'Press Start 2P', monospace; font-size: 10px;
+  background: rgba(90,58,138,.15);
+  border: 2px solid var(--vindicator); border-bottom-color: #3a1a6a; border-right-color: #3a1a6a;
+  color: var(--vindicator); letter-spacing: .04em; transition: all .1s;
+}
+.confirm-btn.done {
+  background: rgba(74,154,74,.12); border-color: var(--creeper);
+  color: var(--creeper);
+}
+.confirm-btn:active:not(.done) { transform: scale(.98); }
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══ -->
+<div id="mc-intro">
+  <div class="creeper-explode"></div>
+  <div style="font-size:64px;animation:creeper-enter .6s cubic-bezier(.22,1,.36,1) forwards;opacity:0">🪓</div>
+  <div id="intro-tagline" style="margin-top:16px">VINDICATOR RAIDS!<br>衛道士手冊載入中...</div>
+</div>
+<div id="tnt-flash"></div>
+
+<!-- ══ HOTBAR ══ -->
+<nav id="hotbar">
+  <div class="hotbar-inner">
+    <a href="index.html" class="hb-slot"><span class="hb-icon">⚔️</span><span class="hb-label">QUEST</span></a>
+    <a href="rules.html" class="hb-slot active"><span class="hb-icon">📖</span><span class="hb-label">RULES</span></a>
+    <a href="leaderboard.html" class="hb-slot"><span class="hb-icon">🏆</span><span class="hb-label">RANK</span></a>
+    <a href="map.html" class="hb-slot"><span class="hb-icon">🗺️</span><span class="hb-label">MAP</span></a>
+    <a href="certificate.html" class="hb-slot"><span class="hb-icon">🎖️</span><span class="hb-label">CERT</span></a>
+  </div>
+</nav>
+
+<div id="pts"></div>
+<div id="toast"></div>
+
+<div class="wrap book-anim">
+
+  <!-- Header -->
+  <div class="page-hero">
+    <div class="page-eyebrow" style="color:var(--vindicator);border-color:rgba(122,90,170,.3)">🪓 VINDICATOR CODEX</div>
+    <div class="page-title" style="color:var(--vindicator)">衛道士<br>行動手冊</div>
+    <div class="page-sub">掠奪者守則 · 閱讀完畢視為同意</div>
+  </div>
+
+  <!-- ① 通訊水晶聯絡 -->
+  <div class="sec-hdr" style="color:var(--vindicator)">EMERGENCY · 通訊水晶緊急聯絡</div>
+  <div class="crystal-card">
+    <div class="crystal-title">🔮 COMMUNICATION CRYSTALS</div>
+    <div class="contact-row">
+      <span class="cr-role">🎖️ 總控指揮官</span>
+      <a href="tel:0900000001" class="cr-tel">0900-000-001</a>
+    </div>
+    <div class="contact-row">
+      <span class="cr-role">⚡ 機動小隊</span>
+      <a href="tel:0900000002" class="cr-tel">0900-000-002</a>
+    </div>
+    <div class="contact-row">
+      <span class="cr-role">🏥 緊急醫療</span>
+      <a href="tel:119" class="cr-tel">119</a>
+    </div>
+    <div class="contact-row">
+      <span class="cr-role">🚔 警察報案</span>
+      <a href="tel:110" class="cr-tel">110</a>
+    </div>
+    <div class="contact-row">
+      <span class="cr-role">🚇 捷運客服</span>
+      <a href="tel:0800361818" class="cr-tel">0800-361-818</a>
+    </div>
+  </div>
+  <div class="scroll-card" style="margin-bottom:20px">
+    <div class="rule-row" style="padding-top:16px">
+      <span class="rule-ax">🪓</span>
+      <div><strong>走散協議</strong>原地待命，立刻啟動通訊水晶撥打隊輔電話</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>身體不適</strong>立刻告知隊輔，不得自行脫隊</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>無電應對</strong>向附近商家借用，撥打隊輔手機</div>
+    </div>
+  </div>
+
+  <!-- ② 任務卷軸時程 -->
+  <div class="sec-hdr" style="color:var(--vindicator)">QUEST SCROLL · 任務時程卷軸</div>
+  <div class="schedule-block" style="border-color:rgba(74,154,74,.3)">
+    <div class="sb-time" style="color:var(--creeper)">08:00–08:30</div>
+    <div class="sb-content">
+      <div class="sb-name">🟩 任務簡報 ＆ 出發</div>
+      <div class="sb-place">聲寶訓練中心集合廣場</div>
+    </div>
+  </div>
+  <div class="schedule-block">
+    <div class="sb-time">09:00–12:00</div>
+    <div class="sb-content">
+      <div class="sb-name">⚔️ 上半場 Boss 戰</div>
+      <div class="sb-place">R28 → R27 → R26 → R25</div>
+    </div>
+  </div>
+  <div class="schedule-block">
+    <div class="sb-time">12:00–13:00</div>
+    <div class="sb-content">
+      <div class="sb-name">🍖 午休補給（豬排飯）</div>
+      <div class="sb-place">指定集合點 · 隊輔帶隊</div>
+    </div>
+  </div>
+  <div class="schedule-block">
+    <div class="sb-time">13:00–16:30</div>
+    <div class="sb-content">
+      <div class="sb-name">🔐 下半場 · 終極解碼</div>
+      <div class="sb-place">R25 關渡站凋零 Boss 戰</div>
+    </div>
+  </div>
+  <div class="schedule-block" style="border-color:rgba(200,34,34,.3)">
+    <div class="sb-time" style="color:var(--tnt-red)">⚠ 16:30</div>
+    <div class="sb-content">
+      <div class="sb-name" style="color:var(--tnt-red)">🚨 全員收關！</div>
+      <div class="sb-place">R28 淡水站 1 號出口廣場</div>
+    </div>
+  </div>
+  <div class="schedule-block">
+    <div class="sb-time">17:00–18:00</div>
+    <div class="sb-content">
+      <div class="sb-name">🚌 返回訓練中心</div>
+      <div class="sb-place">接駁車或公車</div>
+    </div>
+  </div>
+  <div class="schedule-block" style="border-color:rgba(155,89,182,.4);margin-bottom:20px">
+    <div class="sb-time" style="color:var(--dragon)">19:00–20:30</div>
+    <div class="sb-content">
+      <div class="sb-name" style="color:var(--dragon)">🐲 終界龍頒獎典禮</div>
+      <div class="sb-place">聲寶訓練中心大廳</div>
+    </div>
+  </div>
+
+  <!-- ③ 捷運守則 -->
+  <div class="sec-hdr" style="color:var(--tnt-red)">DANGER ZONE · 捷運禁止行為</div>
+  <div style="font-size:13px;font-family:'Press Start 2P',monospace;color:var(--tnt-red);margin-bottom:8px">// 違反 → 即時扣除魂力 HP</div>
+  <div class="scroll-card">
+    <div class="rule-row" style="padding-top:16px">
+      <span class="rule-ax">🪓</span>
+      <div><strong>禁止跨越黃線</strong>不得靠近月台邊緣，違者停止活動資格</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>禁止車廂喧鬧</strong>禁止跑步、大聲喧嘩、阻擋車門</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>禁止搭霸王車</strong>每次搭乘必須刷悠遊卡，違者重扣</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>禁止飲食</strong>含嚼口香糖，地鐵範圍內全面禁止</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🪓</span>
+      <div><strong>禁止越界</strong>限定在 R28～R25 四站，不得前往其他站</div>
+    </div>
+  </div>
+
+  <!-- ④ 安全規則 -->
+  <div class="sec-hdr">SURVIVAL TIPS · 生存技能</div>
+  <div class="scroll-card">
+    <div class="rule-row" style="padding-top:16px">
+      <span class="rule-ax">🛡️</span>
+      <div><strong>防扒模式</strong>隨時注意個人財物，貴重物品不外露</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🛡️</span>
+      <div><strong>補水技能</strong>天氣炎熱，每隔 30 分鐘補充水分，防中暑</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🛡️</span>
+      <div><strong>悠遊卡</strong>妥善保管，遺失立刻通報隊輔</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🛡️</span>
+      <div><strong>拍照安全</strong>在安全距離拍攝，不得攀爬任何設施</div>
+    </div>
+    <div class="rule-row">
+      <span class="rule-ax">🛡️</span>
+      <div><strong>手機電量</strong>建議自備行動電源，保持手機有電</div>
+    </div>
+  </div>
+
+  <!-- ⑤ 積分系統 -->
+  <div class="sec-hdr" style="color:var(--piglin)">SCORE SYSTEM · 魂力 HP 規則</div>
+  <div class="mc-card">
+    <table class="score-table">
+      <tr><th>任務項目</th><th>魂力 HP</th></tr>
+      <tr><td>關卡 A 拍照任務（每項 2 分，共 7 題）</td><td>最高 +14</td></tr>
+      <tr><td>關卡 A 全隊合影（任務⑧）</td><td>+4</td></tr>
+      <tr><td>零提示完成追加</td><td>+5</td></tr>
+      <tr><td>終極解碼零提示第一次正確</td><td>+25</td></tr>
+      <tr><td>使用一次提示後正確</td><td>+15</td></tr>
+      <tr><td>每使用提示（超過一次後）</td><td class="neg">−5/次</td></tr>
+      <tr><td>違反捷運規範（每次）</td><td class="neg">−10/次</td></tr>
+      <tr><td>全程零違規獎勵</td><td>+10</td></tr>
+      <tr><td>豬布林以物易物（墊底隊伍）</td><td style="color:var(--piglin)">特殊獎勵</td></tr>
+    </table>
+  </div>
+
+  <!-- 確認按鈕 -->
+  <div class="confirm-sticky">
+    <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);text-align:center;margin-bottom:8px">▼ 捲到底部表示已閱讀完畢</div>
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmRead()">
+      🪓 特務已閱讀完畢，準備戰鬥！
+    </button>
+  </div>
+
+  <div style="height:24px"></div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+function confirmRead() {
+  const btn = document.getElementById('confirm-btn');
+  btn.classList.add('done');
+  btn.textContent = '✅ 手冊確認完成！';
+  localStorage.setItem('rulesConfirmed', '1');
+  showToast('🪓 衛道士認可！特務資格解鎖', 'green', 3000);
+  setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+}
+window.addEventListener('DOMContentLoaded', () => {
+  initBlockParticles(16, '#7a5aaa');
+  initCreeperIntro();
+  if (localStorage.getItem('rulesConfirmed')) {
+    const btn = document.getElementById('confirm-btn');
+    btn.classList.add('done');
+    btn.textContent = '✅ 手冊已確認完成';
+  }
+});
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js");</script>
+</body>
+</html>
